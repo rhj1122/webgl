@@ -12,12 +12,20 @@ function World(id){
     this.cloud     = null;
 
     //常量
-    this.ANGLE_INCLINED       = Math.PI / 6;
-    this.ROTATION_WORLD_RATE  = 0.001;
-    this.ROTATION_CLOUD_RATE  = 0.0012;
-    this.FIELD_OF_VIEW        = 45;
-    this.NEAR_CLIPPING_PLANE  = 1;
-    this.FAR_CLIPPING_PLANE   = 10;
+    this.constObj  = {
+        ANGLE_INCLINED      : Math.PI / 6,
+        ROTATION_WORLD_RATE : 0.001,
+        ROTATION_CLOUD_RATE : 0.0012,
+        FIELD_OF_VIEW       : 45,
+        NEAR_CLIPPING_PLANE : 1,
+        FAR_CLIPPING_PLANE  : 10,
+        WORLD_SHININESS     : 15,
+
+        //云层高约10km，地球半径6371km，云层球体半径R=(6371+10)/6371≈1.0016
+        WORLD_RADIUS        : 1,
+        CLOUD_RADIUS        : 1.0016,
+        GLOBE_RESOLUTION    : 64
+    }
 }
 
 World.prototype.initRender = function(){
@@ -37,13 +45,14 @@ World.prototype.initScene = function(){
 
 World.prototype.initCamera = function(){
     var container = this.container;
-    var camera = null;
+    var CONST     = this.constObj;
+    var camera    = null;
 
     camera = new THREE.PerspectiveCamera(
-        this.FIELD_OF_VIEW, 
+        CONST.FIELD_OF_VIEW, 
         container.offsetWidth/container.offsetHeight,
-        this.NEAR_CLIPPING_PLANE, 
-        this.FAR_CLIPPING_PLANE
+        CONST.NEAR_CLIPPING_PLANE, 
+        CONST.FAR_CLIPPING_PLANE
     );
     //相机坐标
     camera.position.set(0, 0, 3);
@@ -71,6 +80,8 @@ World.prototype.initWorld = function(){
     var material = null;
     var geometry = null;
 
+    var CONST = this.constObj;
+
     var surfaceMap  = THREE.ImageUtils.loadTexture("images/earth_surface.jpg");
     var normalMap   = THREE.ImageUtils.loadTexture("images/earth_normal.jpg");
     var specularMap = THREE.ImageUtils.loadTexture("images/earth_specular.jpg");
@@ -88,7 +99,7 @@ World.prototype.initWorld = function(){
     uniforms["enableSpecular"].value = true;
 
     //物体表面光滑度
-    uniforms["uShininess"].value = 15;
+    uniforms["uShininess"].value = CONST.WORLD_SHININESS;
 
     //着色器
     material = new THREE.ShaderMaterial({
@@ -99,13 +110,13 @@ World.prototype.initWorld = function(){
     });
     
     //球体网格(半径、纬线顶点数、经线顶点数)
-    geometry = new THREE.SphereGeometry(1, 64, 64);
+    geometry = new THREE.SphereGeometry(CONST.WORLD_RADIUS, CONST.GLOBE_RESOLUTION, CONST.GLOBE_RESOLUTION);
     geometry.computeTangents();
 
     world = new THREE.Mesh(geometry, material);
     
-    world.rotation.x = this.ANGLE_INCLINED;
-    world.rotation.y = this.ANGLE_INCLINED;
+    world.rotation.x = CONST.ANGLE_INCLINED;
+    world.rotation.y = CONST.ANGLE_INCLINED;
 
     this.world = world;
 
@@ -117,15 +128,16 @@ World.prototype.initCloud = function(){
     var cloudsMaterial = null;
     var cloudsGeometry = null;
 
+    var CONST = this.constObj;
+
     cloudsMap      = THREE.ImageUtils.loadTexture("images/earth_clouds.png");
     cloudsMaterial = new THREE.MeshLambertMaterial({color: 0xffffff, map: cloudsMap, transparent: true});
 
     //云层球体网格(半径、纬线顶点数、经线顶点数)
-    //云层高约10km，地球半径6371km，云层相对地面高度R=(6371+10)/6371
-    cloudsGeometry = new THREE.SphereGeometry(1.0016, 64, 64);
+    cloudsGeometry = new THREE.SphereGeometry(CONST.CLOUD_RADIUS, CONST.GLOBE_RESOLUTION, CONST.GLOBE_RESOLUTION);
     cloud          = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
 
-    cloud.rotation.y = this.ANGLE_INCLINED;
+    cloud.rotation.y = CONST.ANGLE_INCLINED;
 
     this.cloud = cloud;
 
@@ -142,8 +154,12 @@ World.prototype.build = function(){
 }
 
 World.prototype.rotate = function(self){
+    var CONST = self.constObj;
+
     self.renderer.render(self.scene, self.camera);
-    self.world.rotation.y += self.ROTATION_WORLD_RATE;
-    self.cloud.rotation.y += self.ROTATION_CLOUD_RATE;
+    self.world.rotation.y += CONST.ROTATION_WORLD_RATE;
+    self.cloud.rotation.y += CONST.ROTATION_CLOUD_RATE;
     requestAnimationFrame( function(){ self.rotate(self); } );
+
+    console.log(1);
 }
