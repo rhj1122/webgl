@@ -160,6 +160,4 @@ World.prototype.rotate = function(self){
     self.world.rotation.y += CONST.ROTATION_WORLD_RATE;
     self.cloud.rotation.y += CONST.ROTATION_CLOUD_RATE;
     requestAnimationFrame( function(){ self.rotate(self); } );
-
-    console.log(1);
 }
