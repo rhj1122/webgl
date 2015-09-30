@@ -94,7 +94,6 @@ World.prototype.initWorld = function(){
     uniforms["tDiffuse"].texture  = surfaceMap;
     uniforms["tSpecular"].texture = specularMap;
 
-    uniforms["enableAO"].value       = false;
     uniforms["enableDiffuse"].value  = true;
     uniforms["enableSpecular"].value = true;
 
